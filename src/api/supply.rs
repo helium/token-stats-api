@@ -1,6 +1,7 @@
 use axum::extract::{Path, Query};
 use serde::{de::IntoDeserializer, Deserialize};
 use solana_client::rpc_client::RpcClient;
+use solana_sdk::pubkey;
 use solana_sdk::{program_pack::Pack, pubkey::Pubkey};
 use spl_token::state::Mint;
 
@@ -32,11 +33,9 @@ impl TokenType {
 
     fn mint(&self) -> Pubkey {
         match self {
-            TokenType::Hnt => Pubkey::from_str_const("hntyVP6YFm1Hg25TN9WGLqM12b8TQmcknKrdu1oxWux"),
-            TokenType::Iot => Pubkey::from_str_const("mb1eu7TzEc71KxDpsmsKoucSSuuoGLv1drys1oP2jh6"),
-            TokenType::Mobile => {
-                Pubkey::from_str_const("iotEVVZLEywoTn1QdwNPddxPWszn3zFhEot3MfL9fns")
-            }
+            TokenType::Hnt => pubkey!("hntyVP6YFm1Hg25TN9WGLqM12b8TQmcknKrdu1oxWux"),
+            TokenType::Iot => pubkey!("mb1eu7TzEc71KxDpsmsKoucSSuuoGLv1drys1oP2jh6"),
+            TokenType::Mobile => pubkey!("iotEVVZLEywoTn1QdwNPddxPWszn3zFhEot3MfL9fns"),
         }
     }
 }
