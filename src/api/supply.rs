@@ -1,12 +1,14 @@
 use axum::extract::{Path, Query};
-use serde::{de::IntoDeserializer, Deserialize};
+use serde::Deserialize;
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::pubkey;
 use solana_sdk::{program_pack::Pack, pubkey::Pubkey};
 use spl_token::state::Mint;
 
-use crate::api::TokenType;
-use crate::SOLANA_RPC;
+use crate::{
+    api::{empty_string_as_none, TokenType},
+    SOLANA_RPC,
+};
 
 impl TokenType {
     fn max_supply(&self) -> f64 {
@@ -52,21 +54,6 @@ enum SupplyType {
     Max,
     Circulating,
     Total,
-}
-
-fn empty_string_as_none<'de, D, T>(de: D) -> Result<Option<T>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-    T: serde::Deserialize<'de>,
-{
-    let opt = Option::<String>::deserialize(de)?;
-    let opt = opt.as_ref().map(String::as_str);
-    match opt {
-        None | Some("") => Ok(None),
-        Some(s) => T::deserialize(s.into_deserializer())
-            .map(Some)
-            .or_else(|_: <D as serde::Deserializer<'de>>::Error| Ok(None)),
-    }
 }
 
 pub async fn get_supply(
