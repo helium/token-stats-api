@@ -7,7 +7,7 @@ use tokio::net::TcpListener;
 
 mod api;
 
-use crate::api::supply::handle_supply;
+use crate::api::supply::get_supply;
 
 lazy_static::lazy_static! {
     static ref SOLANA_RPC: String = env::var("SOLANA_RPC").unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string());
@@ -24,7 +24,7 @@ async fn main() {
         .expect("PORT must be a number");
 
     let app = Router::new()
-        .route("/api/stats/supply/{token}", get(handle_supply))
+        .route("/api/stats/supply/{token}", get(get_supply))
         .fallback(async || Redirect::permanent("https://world.helium.com"));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], port));

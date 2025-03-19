@@ -69,7 +69,7 @@ where
     }
 }
 
-pub async fn handle_supply(
+pub async fn get_supply(
     Path(token): Path<TokenType>,
     Query(params): Query<SupplyParams>,
 ) -> String {
