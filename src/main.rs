@@ -33,7 +33,9 @@ async fn main() {
         .fallback(async || Redirect::permanent("https://world.helium.com"));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
-    let listener = TcpListener::bind(addr).await.unwrap();
+    let listener = TcpListener::bind(addr)
+        .await
+        .expect("Unable to bind to address");
 
     println!("Listening on http://{}", addr);
 
