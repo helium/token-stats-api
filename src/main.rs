@@ -45,19 +45,19 @@ async fn main() {
 #[derive(Deserialize, Debug)]
 enum TokenType {
     #[serde(rename = "hnt")]
-    HNT,
+    Hnt,
     #[serde(rename = "iot")]
-    IOT,
+    Iot,
     #[serde(rename = "mobile")]
-    MOBILE,
+    Mobile,
 }
 
 impl TokenType {
     fn max_supply(&self) -> f64 {
         match self {
-            TokenType::HNT => 223_000_000f64,
-            TokenType::IOT => 200_000_000_000f64,
-            TokenType::MOBILE => 230_000_000_000f64,
+            TokenType::Hnt => 223_000_000f64,
+            TokenType::Iot => 200_000_000_000f64,
+            TokenType::Mobile => 230_000_000_000f64,
         }
     }
 
@@ -77,9 +77,9 @@ impl TokenType {
 
     fn mint(&self) -> Pubkey {
         match self {
-            TokenType::HNT => Pubkey::from_str_const("hntyVP6YFm1Hg25TN9WGLqM12b8TQmcknKrdu1oxWux"),
-            TokenType::IOT => Pubkey::from_str_const("mb1eu7TzEc71KxDpsmsKoucSSuuoGLv1drys1oP2jh6"),
-            TokenType::MOBILE => {
+            TokenType::Hnt => Pubkey::from_str_const("hntyVP6YFm1Hg25TN9WGLqM12b8TQmcknKrdu1oxWux"),
+            TokenType::Iot => Pubkey::from_str_const("mb1eu7TzEc71KxDpsmsKoucSSuuoGLv1drys1oP2jh6"),
+            TokenType::Mobile => {
                 Pubkey::from_str_const("iotEVVZLEywoTn1QdwNPddxPWszn3zFhEot3MfL9fns")
             }
         }
