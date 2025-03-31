@@ -7,6 +7,7 @@ use tokio::net::TcpListener;
 
 mod api;
 
+use crate::api::address::get_address;
 use crate::api::supply::get_supply;
 
 lazy_static::lazy_static! {
@@ -25,6 +26,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/api/stats/supply/{token}", get(get_supply))
+        .route("/api/tools/address", get(get_address))
         .fallback(async || Redirect::permanent("https://world.helium.com"));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
