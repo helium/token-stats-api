@@ -5631,9 +5631,7 @@ name = "token-api"
 version = "0.1.0"
 dependencies = [
  "axum",
- "bs58",
  "dotenv",
- "ed25519-compact",
  "helium-crypto",
  "lazy_static",
  "pretty_env_logger",
