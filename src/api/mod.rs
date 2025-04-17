@@ -4,7 +4,6 @@ pub mod supply;
 
 use std::str::FromStr;
 
-use helium_crypto::WriteTo;
 use serde::{de::IntoDeserializer, Deserialize};
 use solana_sdk::pubkey::Pubkey;
 
@@ -32,34 +31,13 @@ where
 }
 
 fn maybe_convert_to_helium(address: String) -> Option<String> {
-    match Pubkey::from_str(address.as_str()) {
-        Err(_) => None,
-        Ok(pubkey) => {
-            use helium_crypto::ReadFrom;
-            let mut input = std::io::Cursor::new(pubkey.as_ref());
-            match helium_crypto::ed25519::PublicKey::read_from(&mut input) {
-                Err(_) => None,
-                Ok(helium_pubkey) => {
-                    let mut data = vec![0u8; ed25519_compact::PublicKey::BYTES + 2];
-                    data[0] = 0x0;
-                    data[1] = 0x1;
-                    helium_pubkey
-                        .write_to(&mut std::io::Cursor::new(&mut data[2..]))
-                        .unwrap();
-                    let encoded = bs58::encode(&data).with_check().into_string();
-                    Some(encoded.to_string())
-                }
-            }
-        }
-    }
+    Pubkey::from_str(&address).ok()
+        .and_then(|pk| helium_crypto::PublicKey::try_from(pk).ok())
+        .map(|pk| pk.to_string())
 }
 
 fn maybe_convert_to_solana(address: String) -> Option<String> {
-    match bs58::decode(address).with_check(None).into_vec() {
-        Err(_) => None,
-        Ok(decoded) => match decoded[2..(ed25519_compact::PublicKey::BYTES + 2)].try_into() {
-            Err(_) => None,
-            Ok(data) => Some(Pubkey::new_from_array(data).to_string()),
-        },
-    }
+    helium_crypto::PublicKey::from_str(&address).ok()
+        .and_then(|pk| Pubkey::try_from(pk).ok())
+        .map(|pk| pk.to_string())
 }

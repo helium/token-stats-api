@@ -1527,14 +1527,12 @@ checksum = "bf151400ff0baff5465007dd2f3e717f3fe502074ca563069ce3a6629d07b289"
 [[package]]
 name = "helium-crypto"
 version = "0.8.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e3ea5347e981a2d16f06b51d04361a2562cd89b806d765293522f61c5de0ec49"
+source = "git+https://github.com/helium/helium-crypto-rs.git#dc4bd575b1bd8b89617f98b64ac89f7ff0226302"
 dependencies = [
- "base64 0.22.1",
+ "base64 0.21.7",
  "bs58",
  "byteorder",
  "ed25519-compact",
- "getrandom 0.2.15",
  "k256",
  "lazy_static",
  "p256",
@@ -1543,6 +1541,7 @@ dependencies = [
  "serde",
  "sha2 0.10.8",
  "signature 1.4.0",
+ "solana-sdk",
  "thiserror 1.0.69",
 ]
 
