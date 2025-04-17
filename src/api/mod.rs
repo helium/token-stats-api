@@ -38,7 +38,8 @@ fn maybe_convert_to_helium(address: String) -> Option<String> {
 }
 
 fn maybe_convert_to_solana(address: String) -> Option<String> {
-    helium_crypto::PublicKey::from_str(&address).ok()
-        .and_then(|pk| Pubkey::try_from(pk).ok())
+    helium_crypto::PublicKey::from_str(&address)
+        .and_then(Pubkey::try_from)
         .map(|pk| pk.to_string())
+        .ok()
 }
