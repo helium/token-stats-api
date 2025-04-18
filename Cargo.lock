@@ -1526,10 +1526,11 @@ checksum = "bf151400ff0baff5465007dd2f3e717f3fe502074ca563069ce3a6629d07b289"
 
 [[package]]
 name = "helium-crypto"
-version = "0.8.4"
-source = "git+https://github.com/helium/helium-crypto-rs.git#dc4bd575b1bd8b89617f98b64ac89f7ff0226302"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "333dfb5467550fdd77fc6f419a725775ef909746250d3519138a2ddcb08a73d7"
 dependencies = [
- "base64 0.21.7",
+ "base64 0.22.1",
  "bs58",
  "byteorder",
  "ed25519-compact",

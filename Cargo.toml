@@ -13,4 +13,4 @@ tokio = { version = "1", features = ["full"] }
 pretty_env_logger = "0.5"
 serde = "1"
 axum = { version = "0.8.1", default-features = false, features = ["http1", "query", "tokio"] }
-helium-crypto = { git = "https://github.com/helium/helium-crypto-rs.git", features = ["solana"] }
+helium-crypto = { version = "0.9", features = ["solana"] }
