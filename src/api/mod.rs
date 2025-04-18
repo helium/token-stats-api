@@ -1,6 +1,11 @@
+pub mod address;
+pub mod legacy;
 pub mod supply;
 
+use std::str::FromStr;
+
 use serde::{de::IntoDeserializer, Deserialize};
+use solana_sdk::pubkey::Pubkey;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -23,4 +28,18 @@ where
             .map(Some)
             .or_else(|_: <D as serde::Deserializer<'de>>::Error| Ok(None)),
     }
+}
+
+fn maybe_convert_to_helium(address: String) -> Option<String> {
+    Pubkey::from_str(&address)
+        .map(helium_crypto::PublicKey::from)
+        .map(|pk| pk.to_string())
+        .ok()
+}
+
+fn maybe_convert_to_solana(address: String) -> Option<String> {
+    helium_crypto::PublicKey::from_str(&address)
+        .and_then(Pubkey::try_from)
+        .map(|pk| pk.to_string())
+        .ok()
 }
