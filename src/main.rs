@@ -1,8 +1,10 @@
 use std::env;
 use std::net::SocketAddr;
+use std::sync::Arc;
 
 use axum::{routing::get, Router};
 use dotenv::dotenv;
+use solana_client::nonblocking::rpc_client::RpcClient;
 use tokio::net::TcpListener;
 
 mod api;
@@ -12,11 +14,7 @@ use crate::api::legacy::{
     handle_legacy_accounts, handle_legacy_accounts_subpaths, handle_legacy_hotspots,
     handle_legacy_hotspots_subpaths, handle_unknown_legacy_routes,
 };
-use crate::api::supply::get_supply;
-
-lazy_static::lazy_static! {
-    static ref SOLANA_RPC: String = env::var("SOLANA_RPC").unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string());
-}
+use crate::api::supply::{get_supply, SharedRpcClient};
 
 #[tokio::main]
 async fn main() {
@@ -28,8 +26,16 @@ async fn main() {
         .parse()
         .expect("PORT must be a number");
 
-    let app = Router::new()
+    let solana_rpc = env::var("SOLANA_RPC")
+        .unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string());
+    let rpc_client: SharedRpcClient = Arc::new(RpcClient::new(solana_rpc));
+
+    let supply_routes = Router::new()
         .route("/api/stats/supply/{token}", get(get_supply))
+        .with_state(rpc_client);
+
+    let app = Router::new()
+        .merge(supply_routes)
         .route("/api/tools/address", get(get_address))
         // known legacy routes
         .route("/accounts/{account}", get(handle_legacy_accounts))
