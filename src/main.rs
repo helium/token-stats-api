@@ -11,6 +11,7 @@ mod api;
 
 use crate::api::address::get_address;
 use crate::api::legacy;
+use crate::api::staked;
 use crate::api::supply;
 
 #[tokio::main]
@@ -28,7 +29,8 @@ async fn main() {
     let rpc_client = Arc::new(RpcClient::new(solana_rpc));
 
     let app = Router::new()
-        .merge(supply::router(rpc_client))
+        .merge(supply::router(rpc_client.clone()))
+        .merge(staked::router(rpc_client))
         .merge(legacy::router())
         .route("/api/tools/address", get(get_address))
         .fallback(legacy::fallback);
