@@ -13,10 +13,10 @@ const HNT_MINT: Pubkey = pubkey!("hntyVP6YFm1Hg25TN9WGLqM12b8TQmcknKrdu1oxWux");
 const IOT_MINT: Pubkey = pubkey!("iotEVVZLEywoTn1QdwNPddxPWszn3zFhEot3MfL9fns");
 const MOBILE_MINT: Pubkey = pubkey!("mb1eu7TzEc71KxDpsmsKoucSSuuoGLv1drys1oP2jh6");
 
-// Governance realm addresses
-const HNT_REALM: Pubkey = pubkey!("2VfPJn8ML1hNBnsEBo7SzmG11UJc7gbY8b23A3K8expd");
-const IOT_REALM: Pubkey = pubkey!("8UQNtD5Zw8ijB7ZpGiPLodKXMxtVyQmtu1AEztd3p6Po");
-const MOBILE_REALM: Pubkey = pubkey!("7yyaEqDNfgqS6cgmPmJGVoU5dkwayPFRq55VmNDR79ij");
+// VSR registrar addresses
+const HNT_REGISTRAR: Pubkey = pubkey!("BMnWRWZrWqb6JMKznaDqNxWaWAHoaTzVabM6Qwyh3WKz");
+const IOT_REGISTRAR: Pubkey = pubkey!("7ZZopN1mx6ECcb3YCG8dbxeLpA44xq4gzA1ETEiaLoeL");
+const MOBILE_REGISTRAR: Pubkey = pubkey!("C4DWaps9bLiqy4e81wJ7VTQ6QR7C4MWvwsei3ZjsaDuW");
 
 #[derive(Debug, Clone, Copy, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -35,11 +35,11 @@ impl TokenType {
         }
     }
 
-    pub fn realm(&self) -> Pubkey {
+    pub fn registrar(&self) -> Pubkey {
         match self {
-            TokenType::Hnt => HNT_REALM,
-            TokenType::Iot => IOT_REALM,
-            TokenType::Mobile => MOBILE_REALM,
+            TokenType::Hnt => HNT_REGISTRAR,
+            TokenType::Iot => IOT_REGISTRAR,
+            TokenType::Mobile => MOBILE_REGISTRAR,
         }
     }
 

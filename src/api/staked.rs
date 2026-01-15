@@ -86,14 +86,6 @@ impl IntoResponse for StakedError {
     }
 }
 
-fn registrar(token: &TokenType) -> Pubkey {
-    let (registrar, _bump) = Pubkey::find_program_address(
-        &[token.realm().as_ref(), b"registrar", token.mint().as_ref()],
-        &VSR_PROGRAM_ID,
-    );
-    registrar
-}
-
 const ALL_TOKENS: [TokenType; 3] = [TokenType::Hnt, TokenType::Iot, TokenType::Mobile];
 
 pub fn router(rpc_client: Arc<RpcClient>) -> Router {
@@ -186,7 +178,7 @@ async fn get_staked(
 }
 
 async fn fetch_staked_supply(client: &RpcClient, token: &TokenType) -> Result<f64, StakedError> {
-    let registrar = registrar(token);
+    let registrar = token.registrar();
 
     let config = RpcProgramAccountsConfig {
         filters: Some(vec![RpcFilterType::Memcmp(Memcmp::new_raw_bytes(
@@ -196,6 +188,10 @@ async fn fetch_staked_supply(client: &RpcClient, token: &TokenType) -> Result<f6
         account_config: RpcAccountInfoConfig {
             commitment: Some(CommitmentConfig::confirmed()),
             encoding: Some(solana_account_decoder::UiAccountEncoding::Base64),
+            data_slice: Some(solana_account_decoder::UiDataSliceConfig {
+                offset: AMOUNT_OFFSET,
+                length: 8,
+            }),
             ..Default::default()
         },
         ..Default::default()
@@ -209,11 +205,11 @@ async fn fetch_staked_supply(client: &RpcClient, token: &TokenType) -> Result<f6
     let mut total: u64 = 0;
 
     for (_pubkey, account) in accounts {
-        if account.data.len() < AMOUNT_OFFSET + 8 {
-            continue; // Skip accounts that are too small
+        if account.data.len() < 8 {
+            continue; // Skip accounts with incomplete data slice
         }
 
-        let amount_bytes: [u8; 8] = account.data[AMOUNT_OFFSET..AMOUNT_OFFSET + 8]
+        let amount_bytes: [u8; 8] = account.data[..8]
             .try_into()
             .map_err(|_| StakedError::ParseError("Failed to parse amount bytes".to_string()))?;
 
