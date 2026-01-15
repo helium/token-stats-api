@@ -6,11 +6,13 @@ edition = "2021"
 [dependencies]
 dotenv = "0"
 lazy_static = "1"
+solana-account-decoder = "2.2"
 solana-client = "2.2"
 solana-sdk = "2.2"
 spl-token = { version = "7.0", features = ["no-entrypoint"] }
 tokio = { version = "1", features = ["full"] }
 pretty_env_logger = "0.5"
+log = "0.4"
 serde = "1"
 axum = { version = "0.8.1", default-features = false, features = ["http1", "query", "tokio"] }
 helium-crypto = { version = "0.9", features = ["solana"] }

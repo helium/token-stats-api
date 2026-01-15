@@ -1,45 +1,53 @@
-use axum::extract::{Path, Query};
+use std::sync::Arc;
+
+use axum::{
+    extract::{Path, Query, State},
+    http::StatusCode,
+    response::{IntoResponse, Response},
+    routing::get,
+    Router,
+};
 use serde::Deserialize;
-use solana_client::rpc_client::RpcClient;
-use solana_sdk::pubkey;
-use solana_sdk::{program_pack::Pack, pubkey::Pubkey};
+use solana_client::nonblocking::rpc_client::RpcClient;
+use solana_sdk::program_pack::Pack;
 use spl_token::state::Mint;
 
-use crate::{
-    api::{empty_string_as_none, TokenType},
-    SOLANA_RPC,
-};
+use crate::api::{empty_string_as_none, TokenType};
 
-impl TokenType {
-    fn max_supply(&self) -> f64 {
-        match self {
-            TokenType::Hnt => 223_000_000f64,
-            TokenType::Iot => 200_000_000_000f64,
-            TokenType::Mobile => 230_000_000_000f64,
+pub type SharedRpcClient = Arc<RpcClient>;
+
+pub fn router(rpc_client: SharedRpcClient) -> Router {
+    Router::new()
+        .route("/api/stats/supply/{token}", get(get_supply))
+        .with_state(rpc_client)
+}
+
+pub enum SupplyError {
+    RpcError(String),
+    ParseError(String),
+}
+
+impl IntoResponse for SupplyError {
+    fn into_response(self) -> Response {
+        match &self {
+            SupplyError::RpcError(e) => log::error!("Solana RPC error: {}", e),
+            SupplyError::ParseError(e) => log::error!("Mint data parse error: {}", e),
         }
+        StatusCode::SERVICE_UNAVAILABLE.into_response()
     }
+}
 
-    fn maybe_circulating_supply(&self) -> Option<f64> {
-        let client = RpcClient::new(SOLANA_RPC.to_string());
-        let account = client.get_account(&self.mint());
+async fn circulating_supply(token: &TokenType, client: &RpcClient) -> Result<f64, SupplyError> {
+    let account = client
+        .get_account(&token.mint())
+        .await
+        .map_err(|e| SupplyError::RpcError(e.to_string()))?;
 
-        match account {
-            Err(_) => return None,
-            Ok(a) => {
-                let mint = Mint::unpack_from_slice(&a.data).unwrap();
-                let float_supply = mint.supply as f64 / 10f64.powi(mint.decimals as i32);
-                return Some(float_supply);
-            }
-        }
-    }
+    let mint = Mint::unpack_from_slice(&account.data)
+        .map_err(|e| SupplyError::ParseError(e.to_string()))?;
 
-    fn mint(&self) -> Pubkey {
-        match self {
-            TokenType::Hnt => pubkey!("hntyVP6YFm1Hg25TN9WGLqM12b8TQmcknKrdu1oxWux"),
-            TokenType::Mobile => pubkey!("mb1eu7TzEc71KxDpsmsKoucSSuuoGLv1drys1oP2jh6"),
-            TokenType::Iot => pubkey!("iotEVVZLEywoTn1QdwNPddxPWszn3zFhEot3MfL9fns"),
-        }
-    }
+    let float_supply = mint.supply as f64 / 10f64.powi(mint.decimals as i32);
+    Ok(float_supply)
 }
 
 #[derive(Deserialize)]
@@ -56,16 +64,18 @@ enum SupplyType {
     Total,
 }
 
-pub async fn get_supply(
+async fn get_supply(
+    State(rpc_client): State<SharedRpcClient>,
     Path(token): Path<TokenType>,
     Query(params): Query<SupplyParams>,
-) -> String {
+) -> Result<String, SupplyError> {
     match params.supply_type {
-        None => "".to_string(),
+        None => Ok("".to_string()),
         Some(supply_type) => match supply_type {
-            SupplyType::Max => token.max_supply().to_string(),
+            SupplyType::Max => Ok(token.max_supply().to_string()),
             SupplyType::Circulating | SupplyType::Total => {
-                token.maybe_circulating_supply().unwrap_or(0f64).to_string()
+                let supply = circulating_supply(&token, &rpc_client).await?;
+                Ok(supply.to_string())
             }
         },
     }
