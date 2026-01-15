@@ -4,6 +4,8 @@ use axum::{
     extract::{Path, Query, State},
     http::StatusCode,
     response::{IntoResponse, Response},
+    routing::get,
+    Router,
 };
 use serde::Deserialize;
 use solana_client::nonblocking::rpc_client::RpcClient;
@@ -14,6 +16,12 @@ use spl_token::state::Mint;
 use crate::api::{empty_string_as_none, TokenType};
 
 pub type SharedRpcClient = Arc<RpcClient>;
+
+pub fn router(rpc_client: SharedRpcClient) -> Router {
+    Router::new()
+        .route("/api/stats/supply/{token}", get(get_supply))
+        .with_state(rpc_client)
+}
 
 pub enum SupplyError {
     RpcError(String),

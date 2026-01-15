@@ -1,38 +1,38 @@
+use axum::{extract::Path, http::Uri, response::Redirect, routing::get, Router};
+
 use crate::api::maybe_convert_to_solana;
 
-use axum::{extract::Path, http::Uri, response::Redirect};
+const WORLD_HELIUM: &str = "https://world.helium.com";
 
-pub async fn handle_legacy_accounts(Path(address): Path<String>) -> Redirect {
-    handle_legacy_accounts_redirect(address).await
+pub fn router() -> Router {
+    Router::new()
+        .route("/accounts/{account}", get(redirect_account))
+        .route("/accounts/{account}/{*rest}", get(redirect_account_subpath))
+        .route("/hotspots/{hotspot}", get(redirect_hotspot))
+        .route("/hotspots/{hotspot}/{*rest}", get(redirect_hotspot_subpath))
 }
 
-pub async fn handle_legacy_accounts_subpaths(Path(address): Path<(String, String)>) -> Redirect {
-    handle_legacy_accounts_redirect(address.0).await
+pub async fn fallback(_uri: Uri) -> Redirect {
+    Redirect::permanent(WORLD_HELIUM)
 }
 
-async fn handle_legacy_accounts_redirect(address: String) -> Redirect {
+async fn redirect_account(Path(address): Path<String>) -> Redirect {
     match maybe_convert_to_solana(address) {
-        None => Redirect::permanent("https://world.helium.com"),
-        Some(solana_address) => Redirect::permanent(
-            format!("https://world.helium.com/mobile/wallet/{}", solana_address).as_str(),
-        ),
+        None => Redirect::permanent(WORLD_HELIUM),
+        Some(solana_address) => {
+            Redirect::permanent(&format!("{}/mobile/wallet/{}", WORLD_HELIUM, solana_address))
+        }
     }
 }
 
-pub async fn handle_legacy_hotspots(Path(address): Path<String>) -> Redirect {
-    handle_legacy_hotspots_redirect(address).await
+async fn redirect_account_subpath(Path((address, _)): Path<(String, String)>) -> Redirect {
+    redirect_account(Path(address)).await
 }
 
-pub async fn handle_legacy_hotspots_subpaths(Path(address): Path<(String, String)>) -> Redirect {
-    handle_legacy_hotspots_redirect(address.0).await
+async fn redirect_hotspot(Path(address): Path<String>) -> Redirect {
+    Redirect::permanent(&format!("{}/iot/hotspots/gateway/{}", WORLD_HELIUM, address))
 }
 
-async fn handle_legacy_hotspots_redirect(address: String) -> Redirect {
-    Redirect::permanent(
-        format!("https://world.helium.com/iot/hotspots/gateway/{}", address).as_str(),
-    )
-}
-
-pub async fn handle_unknown_legacy_routes(_uri: Uri) -> Redirect {
-    Redirect::permanent("https://world.helium.com")
+async fn redirect_hotspot_subpath(Path((address, _)): Path<(String, String)>) -> Redirect {
+    redirect_hotspot(Path(address)).await
 }

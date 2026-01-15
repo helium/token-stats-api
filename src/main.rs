@@ -10,11 +10,8 @@ use tokio::net::TcpListener;
 mod api;
 
 use crate::api::address::get_address;
-use crate::api::legacy::{
-    handle_legacy_accounts, handle_legacy_accounts_subpaths, handle_legacy_hotspots,
-    handle_legacy_hotspots_subpaths, handle_unknown_legacy_routes,
-};
-use crate::api::supply::{get_supply, SharedRpcClient};
+use crate::api::legacy;
+use crate::api::supply;
 
 #[tokio::main]
 async fn main() {
@@ -28,27 +25,13 @@ async fn main() {
 
     let solana_rpc = env::var("SOLANA_RPC")
         .unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string());
-    let rpc_client: SharedRpcClient = Arc::new(RpcClient::new(solana_rpc));
-
-    let supply_routes = Router::new()
-        .route("/api/stats/supply/{token}", get(get_supply))
-        .with_state(rpc_client);
+    let rpc_client = Arc::new(RpcClient::new(solana_rpc));
 
     let app = Router::new()
-        .merge(supply_routes)
+        .merge(supply::router(rpc_client))
+        .merge(legacy::router())
         .route("/api/tools/address", get(get_address))
-        // known legacy routes
-        .route("/accounts/{account}", get(handle_legacy_accounts))
-        .route(
-            "/accounts/{account}/{*rest}",
-            get(handle_legacy_accounts_subpaths),
-        )
-        .route("/hotspots/{hotspot}", get(handle_legacy_hotspots))
-        .route(
-            "/hotspots/{hotspot}/{*rest}",
-            get(handle_legacy_hotspots_subpaths),
-        )
-        .fallback(handle_unknown_legacy_routes);
+        .fallback(legacy::fallback);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     let listener = TcpListener::bind(addr)
